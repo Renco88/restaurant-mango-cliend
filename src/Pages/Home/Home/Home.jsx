@@ -5,6 +5,7 @@ import Category from "../Category/Category";
 import Featured from "../Featured/Featured";
 import Popularmenu from "../PopularMenu/Popularmenu";
 import Testimonials from "../Testimonials/Testimonials";
+import { useLocation } from "react-router-dom";
 
 const Home = () => {
   return (
