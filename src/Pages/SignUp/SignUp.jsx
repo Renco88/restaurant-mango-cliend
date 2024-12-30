@@ -1,22 +1,54 @@
 import { useContext } from "react";
 import { Helmet } from "react-helmet-async";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
 import { AuthContext } from "../../Providers/AuthProvider";
+import { Link, useNavigate } from "react-router-dom";
+import Swal from 'sweetalert2'
+import useAxiosPublic from "../../Hooks/userAxiosPublic";
+import SocialLogin from "../../Components/SocialLogin";
+
+
 
 const SignUp = () => {
-  const {register,handleSubmit,formState: { errors },} = useForm();
-  const {createUser}= useContext(AuthContext);
+    const axiosPublic = useAxiosPublic();
+    const { register, handleSubmit, reset, formState: { errors } } = useForm();
+    const { createUser, updateUserProfile } = useContext(AuthContext);
+    const navigate = useNavigate();
 
-  const onSubmit = (data) => {
-    console.log(data);
-    createUser(data.email, data.password)
-    .then(result=>{
-      const loggedUser =result.user;
-      console.log(loggedUser);
-    })
-  };
+    const onSubmit = data => {
 
+        createUser(data.email, data.password)
+            .then(result => {
+                const loggedUser = result.user;
+                console.log(loggedUser);
+                updateUserProfile(data.name, data.photoURL)
+                    .then(() => {
+                        // create user entry in the database
+                        const userInfo = {
+                            name: data.name,
+                            email: data.email
+                        }
+                        axiosPublic.post('/users', userInfo)
+                            .then(res => {
+                                if (res.data.insertedId) {
+                                    console.log('user added to the database')
+                                    reset();
+                                    Swal.fire({
+                                        position: 'top-end',
+                                        icon: 'success',
+                                        title: 'User created successfully.',
+                                        showConfirmButton: false,
+                                        timer: 1500
+                                    });
+                                    navigate('/');
+                                }
+                            })
+
+
+                    })
+                    .catch(error => console.log(error))
+            })
+    };
   return (
     <div
       className="min-h-screen flex items-center justify-center"
@@ -40,13 +72,34 @@ const SignUp = () => {
                 type="text"
                 {...register("name", { required: true })}
                 name="name"
-                placeholder="Type here"
+                placeholder="Type Your Name"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
               />
               {errors.name && (
                 <span className="text-red-600">Name is required</span>
               )}
             </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">
+                Photo URL
+              </label>
+              <input
+                type="text"
+                {...register("photoURL", {
+                  pattern: {
+                    value: /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif|svg))$/,
+                    message:
+                      "Enter a valid image URL (e.g., http://example.com/image.png)",
+                  },
+                })}
+                placeholder="Photo URL (optional)"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              />
+              {errors.photoURL && (
+                <p className="text-red-600">{errors.photoURL.message}</p>
+              )}
+            </div>
+
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2">Email</label>
               <input
@@ -56,7 +109,9 @@ const SignUp = () => {
                 placeholder="Type here"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
               />
-             {errors.email && <span className="text-red-600">Email is required</span>}
+              {errors.email && (
+                <span className="text-red-600">Email is required</span>
+              )}
             </div>
             <div className="mb-6">
               <label className="block text-sm font-medium mb-2">Password</label>
@@ -91,7 +146,11 @@ const SignUp = () => {
               )}
             </div>
             <div>
-              <input  className="w-full bg-yellow-500 text-white py-2 rounded-lg font-semibold hover:bg-yellow-600"   type="submit" value="Sign Up" />
+              <input
+                className="w-full bg-yellow-500 text-white py-2 rounded-lg font-semibold hover:bg-yellow-600"
+                type="submit"
+                value="Sign Up"
+              />
             </div>
           </form>
           <p className="text-sm text-center mt-4">
@@ -101,7 +160,7 @@ const SignUp = () => {
             </Link>
           </p>
           <div className="text-center mt-6">
-            <p className="text-sm mb-2">Or sign up with</p>
+            <p className="text-sm mb-2">Or sign up with <SocialLogin></SocialLogin> </p>
             <div className="flex justify-center space-x-4">
               <button className="text-gray-500 hover:text-blue-500">
                 <i className="fab fa-facebook"></i>

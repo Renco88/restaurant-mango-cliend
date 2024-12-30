@@ -8,10 +8,13 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../Providers/AuthProvider";
+import SocialLogin from "../../Components/SocialLogin";
+
 
 
 const Login = () => {
   const [disabled, setDisabled] = useState(true);
+  const {user}= useContext(AuthContext);
 
   const { signIn } = useContext(AuthContext);
 
@@ -48,7 +51,7 @@ const Login = () => {
             navigate(from, { replace: true });
         })
 }
-
+// console.log(user);
 const handleValidateCaptcha = (e) => {
     const user_captcha_value = e.target.value;
     if (validateCaptcha(user_captcha_value)) {
@@ -135,7 +138,7 @@ const handleValidateCaptcha = (e) => {
             </Link>
           </p>
           <div className="text-center mt-6">
-            <p className="text-sm mb-2">Or log in with</p>
+            <p className="text-sm mb-2">Or log in with <SocialLogin></SocialLogin></p>
             <div className="flex justify-center space-x-4">
               <button className="text-gray-500 hover:text-blue-500">
                 <i className="fab fa-facebook"></i>
